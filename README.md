@@ -129,13 +129,19 @@ services:
     image: bincooo/openai-server:v1.0.0
     restart: always
     ports:
-      - 5901:5900
+      - 5900:5900
       - 3000:3000
     volumes:
       - .env:/app/.env
     extra_hosts:
       - "master.io:10.0.20.17"
 ```
+
+```shell
+docker compose up -d
+```
+
+
 
 创建 `.vnc`
 
@@ -182,7 +188,7 @@ Host: [ip]:5000
 
 ​	返回结果
 
-```json
+```tex
 {
   data: '[accessToken]',
   statusCode: 200
