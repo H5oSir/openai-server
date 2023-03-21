@@ -8,40 +8,50 @@ import Authenticator from "cgpt-token"
 
 import { ChatGPTAPIBrowser, ChatResponse } from 'cgpt'
 
+declare type JsonResponse = {
+  json: (d: any) => void
+  setHeader: (k: string, v: string) => void
+  end: () => void
+} & Response
 
 dotenv.config()
 const OPENAI_EMAIL = process.env.OPENAI_EMAIL
 const OPENAI_PASSWORD = process.env.OPENAI_PASSWORD
 const OPENAI_PROXY = process.env.OPENAI_PROXY
 
-async function auth(req: Request, res: Response) {
+function resultError(res: JsonResponse, statusText: string) {
+  res.json({
+    statusText,
+    statusCode: 500
+  })
+}
+
+function resultSuccess(res: JsonResponse, data: any) {
+  res.json({
+    data,
+    statusCode: 200
+  })
+}
+
+async function auth(req: Request, res: JsonResponse) {
   const h = req.headers
   if (!h['content-type'] || !h['content-type'].includes('application/json')) {
-    res.json({
-      statusCode: 500,
-      statusText: 'content-type must "application/json"'
-    })
+    resultError(res, 'content-type must "application/json"')
     return
   }
 
-  const { email, passwd } = req.body
+  const { email, passwd } = (req.body as any)
   const auth = new Authenticator(email, passwd, OPENAI_PROXY)
   await auth.begin()
   const token = await auth.getAccessToken()
   // console.log(token)
-  res.json({
-    statusCode: 200,
-    data: token
-  })
+  resultSuccess(res, token)
 }
 
-async function conversation(req: Request, res: Response) {
+async function conversation(req: Request, res: JsonResponse) {
   const h = req.headers
   if (!h['content-type'] || !h['content-type'].includes('application/json')) {
-    res.json({
-      statusCode: 500,
-      statusText: 'content-type must "application/json"'
-    })
+    resultError(res, 'content-type must "application/json"')
     return
   }
   // const url = "https://chat.openai.com/backend-api/conversation"
@@ -85,6 +95,11 @@ async function conversation(req: Request, res: Response) {
   // })
   // ajax.end()
   // ============================
+  if (!api) {
+    resultError(res, 'BrowserLess is not initialization.')
+    return
+  }
+
   res.setHeader("content-type", 'text/event-stream; charset=utf-8')
   const result = await api.sendMessage('hi', {
     parser: false,
@@ -92,12 +107,9 @@ async function conversation(req: Request, res: Response) {
     onProgress: (partialResponse) => {
       const chunk = partialResponse.chunk??[]
       if (partialResponse.error) {
-        res.json({
-          statusCode: 500,
-          statusText: partialResponse.error.message
-        })
+        resultError(res, partialResponse.error.message)
       } else {
-        res.write(new Uint8Array(chunk))
+        (res as any).write(new Uint8Array(chunk))
       }
     }
   })
@@ -114,16 +126,16 @@ function initOpenai() {
     )
     api = new ChatGPTAPIBrowser({
       debug: false,
-      email: OPENAI_EMAIL,
-      password: OPENAI_PASSWORD,
-      proxyServer: 'http://' + OPENAI_PROXY
+      email: OPENAI_EMAIL??"",
+      password: OPENAI_PASSWORD??"",
+      proxyServer: OPENAI_PROXY ? 'http://' + OPENAI_PROXY : undefined
     })
     api.initSession()
   }
 }
 
 async function main() {
-  const app = express()
+  const app: any = express()
   app.use(parser.json({ limit: '10mb' }))
   app.use(parser.urlencoded({ extended: true }))
   app.use(morgan('dev'))

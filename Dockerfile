@@ -1,8 +1,7 @@
 FROM bincooo/chrome-vnc:latest
 
-WORKDIR /app
 ADD . /app
-
+WORKDIR /app
 
 RUN npm i
 #ENTRYPOINT ["tail","-f","/dev/null"]
