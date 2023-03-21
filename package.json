@@ -31,9 +31,10 @@
     "del-cli": "^5.0.0"
   },
   "dependencies": {
-    "cgpt": "^3.5.5-dev-7",
+    "cgpt": "3.5.5-test-7",
     "cgpt-token": "^1.0.0",
     "express": "^4.18.2",
+    "body-parser": "1.20.2",
     "morgan": "^1.10.0"
   }
 }

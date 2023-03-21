@@ -2,7 +2,7 @@ version: '3.9'
 services:
   test:
     build: .
-    image: openai-proxy:latest
+    image: openai-server:latest
     restart: always
     ports:
       - 5900:5900

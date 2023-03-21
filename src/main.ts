@@ -20,6 +20,7 @@ const OPENAI_PASSWORD = process.env.OPENAI_PASSWORD
 const OPENAI_PROXY = process.env.OPENAI_PROXY
 
 function resultError(res: JsonResponse, statusText: string) {
+  res.setHeader("content-type", 'application/json; charset=utf-8')
   res.json({
     statusText,
     statusCode: 500
@@ -27,6 +28,7 @@ function resultError(res: JsonResponse, statusText: string) {
 }
 
 function resultSuccess(res: JsonResponse, data: any) {
+  res.setHeader("content-type", 'application/json; charset=utf-8')
   res.json({
     data,
     statusCode: 200
@@ -45,7 +47,11 @@ async function auth(req: Request, res: JsonResponse) {
   await auth.begin()
   const token = await auth.getAccessToken()
   // console.log(token)
-  resultSuccess(res, token)
+  if (token) {
+    resultSuccess(res, token)
+  } else {
+    resultError(res, 'Authention fail, please check you account!')
+  }
 }
 
 async function conversation(req: Request, res: JsonResponse) {
@@ -100,25 +106,38 @@ async function conversation(req: Request, res: JsonResponse) {
     return
   }
 
-  res.setHeader("content-type", 'text/event-stream; charset=utf-8')
-  const result = await api.sendMessage('hi', {
-    parser: false,
-    accessToken: h['authorization'].replace('Bearer ', ''),
-    onProgress: (partialResponse) => {
-      const chunk = partialResponse.chunk??[]
-      if (partialResponse.error) {
-        resultError(res, partialResponse.error.message)
-      } else {
-        (res as any).write(new Uint8Array(chunk))
-      }
+  try {
+    let needHeader = true
+    const result = await api.sendMessage('hi', {
+      parser: false,
+      accessToken: h['authorization'].replace('Bearer ', ''),
+      onProgress: (partialResponse) => {
+        const chunk = partialResponse.chunk??[]
+        if (partialResponse.error) {
+          resultError(res, partialResponse.error.message)
+        } else {
+          if (needHeader) {
+            needHeader = false
+            res.setHeader("content-type", 'text/event-stream; charset=utf-8')
+          }
+          (res as any).write(new Uint8Array(chunk))
+        }
+      },
+      jsonBody: req.body
+    })
+
+    if (result.error) {
+      resultError(res, result.error.message)
     }
-  })
+  } catch (err) {
+    resultError(res, `${err}`)
+  }
   res.end()
 }
 
 
 let api: ChatGPTAPIBrowser | null = null
-function initOpenai() {
+async function initOpenai() {
   if (!api) {
     console.log(
       'Login By ' + OPENAI_EMAIL + '\n' +
@@ -130,7 +149,8 @@ function initOpenai() {
       password: OPENAI_PASSWORD??"",
       proxyServer: OPENAI_PROXY ? 'http://' + OPENAI_PROXY : undefined
     })
-    api.initSession()
+    await api.initSession()
+    console.log('ChatGPTAPI initialize success !')
   }
 }
 
@@ -143,7 +163,7 @@ async function main() {
   app.post('/conversation', conversation)
   app.listen(3000)
   console.log('http://127.0.0.1:3000')
-  initOpenai()
+  await initOpenai()
 }
 
 main()
