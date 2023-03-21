@@ -1,3 +1,11 @@
+### 说明
+
+这是一个简易的web chatgpt代理服务器
+
+用于代理openai在线`https://chat.openai.com/chat` 中的聊天请求
+
+
+
 ### 启动
 
 #### 1.源码启动
