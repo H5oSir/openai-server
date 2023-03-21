@@ -89,7 +89,7 @@ MacOS、Linux： `Royal TSX`
 
 连接后可查看浏览器运行情况
 
-![截屏2023-03-22 05.55.18](/Users/admin/docker/openai-server/static/截屏2023-03-22 05.55.18.png)
+![截屏2023-03-22 05.55.18](static/截屏2023-03-22 05.55.18.png)
 
 
 
