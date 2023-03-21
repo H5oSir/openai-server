@@ -188,10 +188,10 @@ Host: [ip]:5000
 
 ​	返回结果
 
-```tex
+```json
 {
-  data: '[accessToken]',
-  statusCode: 200
+  "data": "[accessToken]",
+  "statusCode": 200
 }
 ```
 
