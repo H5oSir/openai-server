@@ -25,6 +25,7 @@ function resultError(res: JsonResponse, statusText: string) {
     statusText,
     statusCode: 500
   })
+  res.status(500)
 }
 
 function resultSuccess(res: JsonResponse, data: any) {
@@ -62,6 +63,7 @@ async function auth(req: Request, res: JsonResponse) {
 }
 
 async function conversation(req: Request, res: JsonResponse) {
+  const h = req.headers
   if (!validateJsonHeader(req, res)) {
     return
   }
@@ -70,7 +72,6 @@ async function conversation(req: Request, res: JsonResponse) {
     resultError(res, 'BrowserLess is not initialization.')
     return
   }
-
   try {
     let nh = true
     const setHeaders = () => {
