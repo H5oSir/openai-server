@@ -79,7 +79,7 @@ docker compose up -d --build
 
 ```shell
 http://127.0.0.1:3000
-Login By vashzrilas@outlook.com
+Login By xxxxxx@outlook.com
 Proxy Server http://master.io:7890
 
 ChatGPTAPI initialize success !

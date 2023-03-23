@@ -12,6 +12,7 @@ declare type JsonResponse = {
   json: (d: any) => void
   setHeader: (k: string, v: string) => void
   end: () => void
+  write: (arr: Uint8Array) => void
 } & Response
 
 dotenv.config()
@@ -105,25 +106,42 @@ async function conversation(req: Request, res: JsonResponse) {
     resultError(res, 'BrowserLess is not initialization.')
     return
   }
+  
 
   try {
-    let needHeader = true
+    let nh = true
+    const setHeaders = () => {
+      if (nh) {
+        nh = false
+        res.setHeader("connection", "keep-alive")
+        res.setHeader("Cache-Control", "no-cache")
+        res.setHeader("content-type", 'text/event-stream; charset=utf-8')
+        req.on('aborted', () => {
+          console.log('req.on(aborted) event-stream')
+          api.newSignal(req.body?.messages?.[0]?.id).cancel()
+        })
+        req.socket.on('close', () => {
+          console.log('req.socket.on(close) event-stream')
+          api.newSignal(req.body?.messages?.[0]?.id).cancel()
+        })
+      }
+    }
+
     const result = await api.sendMessage('hi', {
-      parser: false,
-      accessToken: h['authorization'].replace('Bearer ', ''),
       onProgress: (partialResponse) => {
         const chunk = partialResponse.chunk??[]
         if (partialResponse.error) {
           resultError(res, partialResponse.error.message)
         } else {
-          if (needHeader) {
-            needHeader = false
-            res.setHeader("content-type", 'text/event-stream; charset=utf-8')
-          }
-          (res as any).write(new Uint8Array(chunk))
+          setHeaders()
+          res.write(new Uint8Array(chunk))
         }
       },
-      jsonBody: req.body
+      progressOptions: {
+        parser: false,
+        jsonBody: req.body,
+        accessToken: h['authorization'].replace('Bearer ', '')
+      }
     })
 
     if (result.error) {

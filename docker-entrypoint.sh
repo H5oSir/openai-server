@@ -7,7 +7,7 @@ echo ' give me the star, thank ~'
 echo '+------------------------------------------------------+'
 echo "|                     DISPLAY $DISPLAY                      |"
 echo '|                     X11VNC 5900                      |'
-echo '|             github: bincooo/openai-proxy             |'
+echo '|             github: bincooo/openai-server            |'
 echo '|                   please wait ...                    |'
 echo '+------------------------------------------------------+'
 echo ' '
