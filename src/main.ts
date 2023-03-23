@@ -3,8 +3,7 @@ import express from 'express'
 import parser from 'body-parser'
 import morgan from 'morgan'
 import Authenticator from "cgpt-token"
-// import ProxyAgent from 'https-proxy-agent'
-// import https from 'https'
+import { html2jpg } from './browser'
 
 import { ChatGPTAPIBrowser, ChatResponse } from 'cgpt'
 
@@ -36,10 +35,17 @@ function resultSuccess(res: JsonResponse, data: any) {
   })
 }
 
-async function auth(req: Request, res: JsonResponse) {
+function validateJsonHeader(req: Request, res: JsonResponse): boolean {
   const h = req.headers
   if (!h['content-type'] || !h['content-type'].includes('application/json')) {
     resultError(res, 'content-type must "application/json"')
+    res.end()
+    return false
+  } else return true
+}
+
+async function auth(req: Request, res: JsonResponse) {
+  if (!validateJsonHeader(req, res)) {
     return
   }
 
@@ -56,57 +62,14 @@ async function auth(req: Request, res: JsonResponse) {
 }
 
 async function conversation(req: Request, res: JsonResponse) {
-  const h = req.headers
-  if (!h['content-type'] || !h['content-type'].includes('application/json')) {
-    resultError(res, 'content-type must "application/json"')
+  if (!validateJsonHeader(req, res)) {
     return
   }
-  // const url = "https://chat.openai.com/backend-api/conversation"
-  // const options = {
-  //   // protocol: 'https:',
-  //   // hostname: 'chat.openai.com',
-  //   // port: '443',
-  //   // method: "POST",
-  //   // path: '/backend-api/conversation',
-  //   headers: {
-  //     'accept': '*/*',
-  //     'x-openai-assistant-app-id': '',
-  //     'referer': 'https://chat.openai.com/chat',
-  //     'content-type': 'application/json',
-  //     'cache-control': 'no-cache',
-  //     'connection': 'keep-alive',
-  //     'keep-alive': 'timeout=360',
-  //     'user-agent': 'Mozilla/5.0 (X11 Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
-  //     'authorization': h['authorization'],
-  //     'sec-ch-ua': '"Microsoft Edge";v="111", "Not(A:Brand";v="8", "Chromium";v="111"',
-  //     'sec-ch-ua-platform': '"macOS"',
-  //     'sec-fetch-dest': 'empty',
-  //     'sec-fetch-mode': 'cors',
-  //     'sec-fetch-site': 'none',
-  //     'cookie': 'cf_clearance=jceMfVSIkVA0.gcPiyS0n2HVv3NKCShUVGfTTNOfZ0w-1679335297-0-1-578f6fef.91314e09.8e300f-250'
-  //   },
-  //   agent: new ProxyAgent('http://127.0.0.1:7890')
-  // }
-  // const ajax = https.request(url, options, r => {
-  //   res.setHeader("content-type", r.headers['content-type'])
-  //   r.on('data', chunk => {
-  //     // console.log([...chunk])
-  //     res.write(chunk)
-  //   })
-  //   r.on('end', () => res.end())
-  // })
-  // ajax.write(JSON.stringify(req.body))
-  // ajax.on('error', error => {
-  //   console.log('error', error)
-  //   res.end()
-  // })
-  // ajax.end()
-  // ============================
+
   if (!api) {
     resultError(res, 'BrowserLess is not initialization.')
     return
   }
-  
 
   try {
     let nh = true
@@ -154,6 +117,25 @@ async function conversation(req: Request, res: JsonResponse) {
 }
 
 
+async function _html2jpg(req: Request, res: JsonResponse) {
+  if (!validateJsonHeader(req, res)) {
+    return
+  }
+  try {
+    const { htmlText } = req.body
+    const b64 = await html2jpg(htmlText)
+    if (!b64) {
+      resultError(req, `图片生成失败`)
+    } else {
+      resultSuccess(res, b64)
+    }
+  } catch(err) {
+    resultError(req, `图片生成失败: ${err}`)
+  }
+  res.end()
+}
+
+
 let api: ChatGPTAPIBrowser | null = null
 async function initOpenai() {
   if (!api) {
@@ -179,6 +161,7 @@ async function main() {
   app.use(morgan('dev'))
   app.post('/auth', auth)
   app.post('/conversation', conversation)
+  app.post('/html2jpg', _html2jpg)
   app.listen(3000)
   console.log('http://127.0.0.1:3000')
   await initOpenai()

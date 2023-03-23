@@ -223,7 +223,38 @@ Host: [ip]:5000
       }
     }],
   "parent_message_id":"c7812e2b-3e46-4977-9794-f149807f595a",
-  "model":"text-davinci-002-render-sha"
+  "model":"text-davinci-002-render"
+}
+```
+
+3. html转jpg
+
+   ```tex
+   http://[ip]:5000/html2jpg
+   ```
+
+```http
+POST /html2jpg HTTP/1.1
+Content-Type: application/json
+Host: [ip]:5000
+{
+  "htmlText":"xxxxx"
+}
+```
+
+​	返回结果
+
+```http
+{
+  "data": "[base64]",
+  "statusCode": 200
+}
+```
+
+```http
+{
+  "statusText": "[error message]",
+  "statusCode": 500
 }
 ```
 
