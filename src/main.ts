@@ -19,13 +19,14 @@ const OPENAI_EMAIL = process.env.OPENAI_EMAIL
 const OPENAI_PASSWORD = process.env.OPENAI_PASSWORD
 const OPENAI_PROXY = process.env.OPENAI_PROXY
 
-function resultError(res: JsonResponse, statusText: string) {
+function resultError(res: JsonResponse, statusText: string, status?: number = 500) {
+  res.status(status)
   res.setHeader("content-type", 'application/json; charset=utf-8')
   res.json({
     statusText,
     statusCode: 500
   })
-  res.status(500)
+  // res.statusCode = 500
 }
 
 function resultSuccess(res: JsonResponse, data: any) {
@@ -109,10 +110,10 @@ async function conversation(req: Request, res: JsonResponse) {
     })
 
     if (result.error) {
-      resultError(res, result.error.message)
+      resultError(res, result.error.message, result.error.statusCode)
     }
   } catch (err) {
-    resultError(res, `${err}`)
+    resultError(res, `${err}`, err.statusCode)
   }
   res.end()
 }
