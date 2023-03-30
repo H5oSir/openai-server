@@ -52,10 +52,18 @@ async function auth(req: Request, res: JsonResponse) {
   }
 
   const { email, passwd } = (req.body as any)
-  const auth = new Authenticator(email, passwd, OPENAI_PROXY)
-  await auth.begin()
-  const token = await auth.getAccessToken()
+  // const auth = new Authenticator(email, passwd, OPENAI_PROXY)
+  // await auth.begin()
+  // const token = await auth.getAccessToken()
   // console.log(token)
+  const browser = new ChatGPTAPIBrowser({
+    debug: false,
+    email: OPENAI_EMAIL??"",
+    password: OPENAI_PASSWORD??"",
+    proxyServer: OPENAI_PROXY ? 'http://' + OPENAI_PROXY : undefined
+  })
+  await browser.initSession()
+  const token = await browser.getAccessToken()
   if (token) {
     resultSuccess(res, token)
   } else {
@@ -166,7 +174,7 @@ async function main() {
   app.post('/html2jpg', _html2jpg)
   app.listen(3000)
   console.log('http://127.0.0.1:3000')
-  await initOpenai()
+  // await initOpenai()
 }
 
 main()

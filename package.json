@@ -31,7 +31,7 @@
     "del-cli": "^5.0.0"
   },
   "dependencies": {
-    "cgpt": "3.5.5-test-9",
+    "cgpt": "3.5.5-test-11",
     "cgpt-token": "^1.0.0",
     "express": "^4.18.2",
     "body-parser": "1.20.2",
