@@ -71,7 +71,7 @@ async function auth(req: Request, res: JsonResponse) {
       resultError(res, 'Authention fail, please check you account!')
     }
   } finally {
-    browser.closeSession()
+    await browser.exit()
   }
 }
 
@@ -178,7 +178,7 @@ async function main() {
   app.post('/html2jpg', _html2jpg)
   app.listen(3000)
   console.log('http://127.0.0.1:3000')
-  // await initOpenai()
+  await initOpenai()
 }
 
 main()
