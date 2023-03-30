@@ -62,12 +62,16 @@ async function auth(req: Request, res: JsonResponse) {
     password: OPENAI_PASSWORD??"",
     proxyServer: OPENAI_PROXY ? 'http://' + OPENAI_PROXY : undefined
   })
-  await browser.initSession()
-  const token = await browser.getAccessToken()
-  if (token) {
-    resultSuccess(res, token)
-  } else {
-    resultError(res, 'Authention fail, please check you account!')
+  try {
+    await browser.initSession()
+    const token = await browser.getAccessToken()
+    if (token) {
+      resultSuccess(res, token)
+    } else {
+      resultError(res, 'Authention fail, please check you account!')
+    }
+  } finally {
+    browser.closeSession()
   }
 }
 
