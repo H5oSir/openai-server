@@ -58,8 +58,8 @@ async function auth(req: Request, res: JsonResponse) {
   // console.log(token)
   const browser = new ChatGPTAPIBrowser({
     debug: false,
-    email: OPENAI_EMAIL??"",
-    password: OPENAI_PASSWORD??"",
+    email,
+    password: passwd,
     proxyServer: OPENAI_PROXY ? 'http://' + OPENAI_PROXY : undefined
   })
   try {
