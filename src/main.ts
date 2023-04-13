@@ -64,13 +64,14 @@ async function auth(req: Request, res: JsonResponse) {
   })
   try {
     await browser.initSession()
-    const token = await browser.getAccessToken()
+    const token = await browser.getAccessToken(true)
     if (token) {
       resultSuccess(res, token)
     } else {
       resultError(res, 'Authention fail, please check you account!')
     }
   } finally {
+    res.end()
     await browser.exit()
   }
 }
